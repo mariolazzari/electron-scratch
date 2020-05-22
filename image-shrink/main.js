@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, Menu } = require("electron");
 
 // enviroment settings
 process.env.NODE_ENV = "development";
@@ -24,7 +24,21 @@ const createMainWindow = () => {
 };
 
 // create main window when app is ready
-app.on("ready", createMainWindow);
+app.on("ready", () => {
+  createMainWindow();
+
+  // setup menu
+  const mainMenu = Menu.buildFromTemplate(menu);
+  Menu.setApplicationMenu(mainMenu);
+
+  // garbage collector
+  mainWindow.on("ready", () => (mainWindow = null));
+});
+
+// Main menu template
+const main = [
+  { label: "File", submenu: [{ label: "Quit", click: () => app.quit() }] },
+];
 
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
