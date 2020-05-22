@@ -32,14 +32,16 @@ app.on("ready", () => {
   Menu.setApplicationMenu(mainMenu);
 
   // garbage collector
-  mainWindow.on("ready", () => (mainWindow = null));
+  mainWindow.on("ready", () => {
+    mainWindow = null;
+  });
 });
 
 // Main menu template
-const main = [
+const menu = [
+  ...(isMac ? [{ role: "appMenu" }] : []),
   { label: "File", submenu: [{ label: "Quit", click: () => app.quit() }] },
 ];
-
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
   // On macOS it is common for applications and their menu bar
