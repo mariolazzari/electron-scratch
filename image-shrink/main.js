@@ -1,7 +1,19 @@
-const { app, BrowserWindow, Menu, globalShortcut } = require("electron");
+const imagemin = require("imagemin");
+const imageminJpg = require("imagemin-mozjpeg");
+const imageminPng = require("imagemin-pngquant");
+const slash = require("slash");
+const {
+  app,
+  BrowserWindow,
+  Menu,
+  globalShortcut,
+  ipcMain,
+  shell,
+} = require("electron");
+const log = require("electron-log");
 
 // enviroment settings
-process.env.NODE_ENV = "development";
+process.env.NODE_ENV = "production";
 const isDev = process.env.NODE_ENV === "development";
 const isMac = process.platform === "darwin";
 
@@ -12,13 +24,19 @@ let aboutWindow;
 // create main window
 const createMainWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 500,
+    width: isDev ? 800 : 500,
     height: 600,
     title: "Image Shrink",
     icon: "./assets/icons/Icon_256x256.png",
     resizable: isDev,
     backgroundColor: "white",
+    webPreferences: { nodeIntegration: true },
   });
+
+  // open dev tools in dev mode
+  if (isDev) {
+    mainWindow.webContents.openDevTools();
+  }
 
   // load index file
   //mainWindow.loadURL(`file://${__dirname}/app/index.html`);
@@ -39,6 +57,34 @@ const createAboutWindow = () => {
   // load index file
   aboutWindow.loadFile("./app/about.html");
 };
+
+// shrink image
+const shrinkImage = async ({ imgPath, quality, dest }) => {
+  try {
+    const pngQuality = quality / 100;
+
+    const files = await imagemin([slash(imgPath)], {
+      destination: dest,
+      plugins: [
+        imageminJpg({ quality }),
+        imageminPng({
+          quality: [pngQuality, pngQuality],
+        }),
+      ],
+    });
+
+    log.info(files);
+    shell.openPath(dest);
+    mainWindow.webContents.send("image:done");
+  } catch (ex) {
+    log.error(ex);
+  }
+};
+
+// subscribe image:minimize event
+ipcMain.on("image:minimize", (e, options) => {
+  shrinkImage(options);
+});
 
 // create main window when app is ready
 app.on("ready", () => {
@@ -70,16 +116,6 @@ const menu = [
       ]
     : []),
   { role: "fileMenu" },
-  {
-    label: "Developer",
-    submenu: [
-      { role: "reload" },
-      { role: "forcereload" },
-      { role: "reload" },
-      { type: "separator" },
-      { role: "toggledevtools" },
-    ],
-  },
   ...(isMac
     ? []
     : [
@@ -88,6 +124,19 @@ const menu = [
           submenu: [{ label: "About", click: createAboutWindow }],
         },
       ]),
+  ...(isDev
+    ? [
+        {
+          label: "Developer",
+          submenu: [
+            { role: "reload" },
+            { role: "forcereload" },
+            { type: "separator" },
+            { role: "toggledevtools" },
+          ],
+        },
+      ]
+    : []),
 ];
 
 // Quit when all windows are closed.

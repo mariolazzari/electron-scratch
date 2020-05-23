@@ -47,5 +47,40 @@
     </div>
 
     <script src="js/materialize.min.js"></script>
+
+    <script>
+      const os = require("os");
+      const path = require("path");
+      const { ipcRenderer } = require("electron");
+
+      // get elements
+      const form = document.getElementById("image-form");
+      const slider = document.getElementById("slider");
+      const img = document.getElementById("img");
+      // destination folder
+      const dest = path.join(os.homedir(), "imageShrink");
+
+      // onSubmit event handler
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        // get paramss
+        const imgPath = img.files[0].path;
+        const quality = slider.value;
+
+        // raise image:minimize event
+        ipcRenderer.send("image:minimize", { imgPath, quality, dest });
+      });
+
+      // set output path
+      document.getElementById("output-path").innerText = dest;
+
+      //   On done
+      ipcRenderer.on("image:done", () => {
+        M.toast({
+          html: `Image resized to ${slider.value}% quality`,
+        });
+      });
+    </script>
   </body>
 </html>
