@@ -1,12 +1,13 @@
-const { app, BrowserWindow, Menu } = require("electron");
+const { app, BrowserWindow, Menu, globalShortcut } = require("electron");
 
 // enviroment settings
 process.env.NODE_ENV = "development";
-const isDev = process.env.NODE_ENV !== "production";
+const isDev = process.env.NODE_ENV === "development";
 const isMac = process.platform === "darwin";
 
 // app main window
 let mainWindow;
+let aboutWindow;
 
 // create main window
 const createMainWindow = () => {
@@ -16,11 +17,27 @@ const createMainWindow = () => {
     title: "Image Shrink",
     icon: "./assets/icons/Icon_256x256.png",
     resizable: isDev,
+    backgroundColor: "white",
   });
 
   // load index file
   //mainWindow.loadURL(`file://${__dirname}/app/index.html`);
   mainWindow.loadFile("./app/index.html");
+};
+
+// create about window
+const createAboutWindow = () => {
+  aboutWindow = new BrowserWindow({
+    width: 300,
+    height: 300,
+    title: "About",
+    icon: "./assets/icons/Icon_256x256.png",
+    resizable: false,
+    backgroundColor: "white",
+  });
+
+  // load index file
+  aboutWindow.loadFile("./app/about.html");
 };
 
 // create main window when app is ready
@@ -30,6 +47,11 @@ app.on("ready", () => {
   // setup menu
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
+  // global shortcuts
+  globalShortcut.register("CmdOrCtrl+R", () => mainWindow.reload());
+  globalShortcut.register(isMac ? "Command+Alt+I" : "Ctrl+Shift+I", () =>
+    mainWindow.toggleDevTools()
+  );
 
   // garbage collector
   mainWindow.on("ready", () => {
@@ -39,9 +61,35 @@ app.on("ready", () => {
 
 // Main menu template
 const menu = [
-  ...(isMac ? [{ role: "appMenu" }] : []),
-  { label: "File", submenu: [{ label: "Quit", click: () => app.quit() }] },
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [{ label: "About", click: createAboutWindow }],
+        },
+      ]
+    : []),
+  { role: "fileMenu" },
+  {
+    label: "Developer",
+    submenu: [
+      { role: "reload" },
+      { role: "forcereload" },
+      { role: "reload" },
+      { type: "separator" },
+      { role: "toggledevtools" },
+    ],
+  },
+  ...(isMac
+    ? []
+    : [
+        {
+          label: "Help",
+          submenu: [{ label: "About", click: createAboutWindow }],
+        },
+      ]),
 ];
+
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
   // On macOS it is common for applications and their menu bar
