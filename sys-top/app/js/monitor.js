@@ -1,89 +1,99 @@
-const path = require("path");
-const { cpu, mem, os } = require("node-os-utils");
+const path = require('path')
+const { ipcRenderer } = require('electron')
+const osu = require('node-os-utils')
+const cpu = osu.cpu
+const mem = osu.mem
+const os = osu.os
 
-const DAY = 3600 * 24;
+let cpuOverload
+let alertFrequency
 
-// format seconds
-const secondsToDhms = (seconds) => {
-  seconds = +seconds;
-  const d = Math.round(seconds / DAY);
-  const h = Math.round((seconds % DAY) / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  const s = Math.round(seconds % 60);
+// Get settings & values
+ipcRenderer.on('settings:get', (e, settings) => {
+  cpuOverload = +settings.cpuOverload
+  alertFrequency = +settings.alertFrequency
+})
 
-  return `${d}d, ${h}h, ${m}m, ${s}s`;
-};
+// Run every 2 seconds
+setInterval(() => {
+  // CPU Usage
+  cpu.usage().then((info) => {
+    document.getElementById('cpu-usage').innerText = info + '%'
 
-// send notification
-const notifyUser = (options) => {
-  new Notification(options.title, options);
-};
+    document.getElementById('cpu-progress').style.width = info + '%'
 
-// check time notification
-const checkNotify = (frequency) => {
-  if (localStorage.getItem("lastNotify") === null) {
+    // Make progress bar red if overload
+    if (info >= cpuOverload) {
+      document.getElementById('cpu-progress').style.background = 'red'
+    } else {
+      document.getElementById('cpu-progress').style.background = '#30c88b'
+    }
+
+    // Check overload
+    if (info >= cpuOverload && runNotify(alertFrequency)) {
+      notifyUser({
+        title: 'CPU Overload',
+        body: `CPU is over ${cpuOverload}%`,
+        icon: path.join(__dirname, 'img', 'icon.png'),
+      })
+
+      localStorage.setItem('lastNotify', +new Date())
+    }
+  })
+
+  //   CPU Free
+  cpu.free().then((info) => {
+    document.getElementById('cpu-free').innerText = info + '%'
+  })
+
+  //   Uptime
+  document.getElementById('sys-uptime').innerText = secondsToDhms(os.uptime())
+}, 2000)
+
+// Set model
+document.getElementById('cpu-model').innerText = cpu.model()
+
+// Computer Name
+document.getElementById('comp-name').innerText = os.hostname()
+
+// OS
+document.getElementById('os').innerText = `${os.type()} ${os.arch()}`
+
+// Total Mem
+mem.info().then((info) => {
+  document.getElementById('mem-total').innerText = info.totalMemMb
+})
+
+// Show days, hours, mins, sec
+function secondsToDhms(seconds) {
+  seconds = +seconds
+  const d = Math.floor(seconds / (3600 * 24))
+  const h = Math.floor((seconds % (3600 * 24)) / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  return `${d}d, ${h}h, ${m}m, ${s}s`
+}
+
+// Send notification
+function notifyUser(options) {
+  new Notification(options.title, options)
+}
+
+// Check how much time has passed since notification
+function runNotify(frequency) {
+  if (localStorage.getItem('lastNotify') === null) {
     // Store timestamp
-    localStorage.setItem("lastNotify", +new Date());
-    return true;
+    localStorage.setItem('lastNotify', +new Date())
+    return true
   }
-  const notifyTime = new Date(parseInt(localStorage.getItem("lastNotify")));
-  const now = new Date();
-  const diffTime = Math.abs(now - notifyTime);
-  const minutesPassed = Math.ceil(diffTime / (1000 * 60));
+  const notifyTime = new Date(parseInt(localStorage.getItem('lastNotify')))
+  const now = new Date()
+  const diffTime = Math.abs(now - notifyTime)
+  const minutesPassed = Math.ceil(diffTime / (1000 * 60))
 
   if (minutesPassed > frequency) {
-    return true;
+    return true
   } else {
-    return false;
+    return false
   }
-};
-
-// settings
-let cpuOverload = 85;
-let alertFrequency = 1;
-
-// run every 2 seconds
-setInterval(() => {
-  // CPU usage
-  cpu.usage().then((info) => {
-    document.getElementById("cpu-usage").innerText = `${info}%`;
-    // cpu progress bar
-    document.getElementById("cpu-progress").style.width = `${info}%`;
-    // Make progressbar red on overload
-    document.getElementById("cpu-progress").style.background =
-      info > cpuOverload ? "red" : "#30c88b";
-    // check overload interval
-    if (info > cpuOverload && checkNotify(alertFrequency)) {
-      notifyUser({
-        title: "CPU overload",
-        body: `CPU is over ${cpuOverload}%.`,
-        icon: path.join(__dirname, "img", "icon.png"),
-      });
-
-      localStorage.setItem("lastNotify", +new Date());
-    }
-  });
-
-  // CPU free
-  cpu
-    .free()
-    .then(
-      (info) => (document.getElementById("cpu-free").innerText = `${info}%`)
-    );
-
-  // Uptime
-  document.getElementById("sys-uptime").innerText = secondsToDhms(os.uptime());
-}, 2000);
-
-// set model
-document.getElementById("cpu-model").innerText = cpu.model();
-// computer name
-document.getElementById("comp-name").innerText = os.hostname();
-// OS name
-document.getElementById("os").innerText = `${os.type()} ${os.arch()}`;
-// Memory
-mem
-  .info()
-  .then(
-    (info) => (document.getElementById("mem-total").innerText = info.totalMemMb)
-  );
+}
