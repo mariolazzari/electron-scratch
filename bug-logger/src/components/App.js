@@ -27,7 +27,6 @@ const App = () => {
 
   function deleteItem(_id) {
     ipcRenderer.send("logs:delete", _id);
-
     showAlert("Log Removed");
   }
 
@@ -49,8 +48,11 @@ const App = () => {
 
   useEffect(() => {
     ipcRenderer.send("logs:load");
-    ipcRenderer.on("logs:get", (e, logs) => {
-      setLogs(JSON.parse(logs));
+
+    ipcRenderer.on("logs:get", (e, logs) => setLogs(JSON.parse(logs)));
+    ipcRenderer.on("logs:clear", () => {
+      setLogs([]);
+      setAlert("Logs cleared");
     });
   }, []);
 
