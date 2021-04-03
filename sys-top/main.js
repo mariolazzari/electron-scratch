@@ -38,7 +38,7 @@ app.on("ready", () => {
   const mainMenu = Menu.buildFromTemplate(menu);
   Menu.setApplicationMenu(mainMenu);
 
-  mainWindow.on("close", (e) => {
+  mainWindow.on("close", e => {
     if (!app.isQuitting) {
       e.preventDefault();
       mainWindow.hide();

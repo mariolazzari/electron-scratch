@@ -71,7 +71,7 @@ const App = () => {
           </tr>
         </thead>
         <tbody>
-          {logs.map((log) => (
+          {logs.map(log => (
             <LogItem key={log._id} log={log} deleteItem={deleteItem} />
           ))}
         </tbody>

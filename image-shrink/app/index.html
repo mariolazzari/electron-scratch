@@ -52,38 +52,38 @@
 
     <script src="js/materialize.min.js"></script>
     <script>
-      const path = require('path')
-      const os = require('os')
-      const { ipcRenderer } = require('electron')
+      const path = require("path");
+      const os = require("os");
+      const { ipcRenderer } = require("electron");
 
-      const form = document.getElementById('image-form')
-      const slider = document.getElementById('slider')
-      const img = document.getElementById('img')
+      const form = document.getElementById("image-form");
+      const slider = document.getElementById("slider");
+      const img = document.getElementById("img");
 
-      document.getElementById('output-path').innerText = path.join(
+      document.getElementById("output-path").innerText = path.join(
         os.homedir(),
-        'imageshrink'
-      )
+        "imageshrink"
+      );
 
       //   Onsubmit
-      form.addEventListener('submit', (e) => {
-        e.preventDefault()
+      form.addEventListener("submit", e => {
+        e.preventDefault();
 
-        const imgPath = img.files[0].path
-        const quality = slider.value
+        const imgPath = img.files[0].path;
+        const quality = slider.value;
 
-        ipcRenderer.send('image:minimize', {
+        ipcRenderer.send("image:minimize", {
           imgPath,
           quality,
-        })
-      })
+        });
+      });
 
       //   On done
-      ipcRenderer.on('image:done', () => {
+      ipcRenderer.on("image:done", () => {
         M.toast({
           html: `Image resized to ${slider.value}% quality`,
-        })
-      })
+        });
+      });
     </script>
   </body>
 </html>

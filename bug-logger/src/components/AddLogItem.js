@@ -10,7 +10,7 @@ const AddLogItem = ({ addItem }) => {
   const [user, setUser] = useState("");
   const [priority, setPriority] = useState("");
 
-  const onSubmit = (e) => {
+  const onSubmit = e => {
     e.preventDefault();
     addItem({ text, user, priority });
 
@@ -28,7 +28,7 @@ const AddLogItem = ({ addItem }) => {
               <Form.Control
                 placeholder="Log"
                 value={text}
-                onChange={(e) => setText(e.target.value)}
+                onChange={e => setText(e.target.value)}
               />
             </Col>
           </Row>
@@ -37,14 +37,14 @@ const AddLogItem = ({ addItem }) => {
               <Form.Control
                 placeholder="User"
                 value={user}
-                onChange={(e) => setUser(e.target.value)}
+                onChange={e => setUser(e.target.value)}
               />
             </Col>
             <Col>
               <Form.Control
                 as="select"
                 value={priority}
-                onChange={(e) => setPriority(e.target.value)}
+                onChange={e => setPriority(e.target.value)}
               >
                 <option value="0">Select Priority</option>
                 <option value="low">Low</option>

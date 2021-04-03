@@ -70,45 +70,45 @@
     <script src="js/tabs.js"></script>
     <script src="js/monitor.js"></script>
     <script>
-      const settingsForm = document.getElementById('settings-form')
-      const nav = document.getElementById('nav')
+      const settingsForm = document.getElementById("settings-form");
+      const nav = document.getElementById("nav");
 
       // Get settings
-      ipcRenderer.on('settings:get', (e, settings) => {
-        document.getElementById('cpu-overload').value = settings.cpuOverload
-        document.getElementById('alert-frequency').value =
-          settings.alertFrequency
-      })
+      ipcRenderer.on("settings:get", (e, settings) => {
+        document.getElementById("cpu-overload").value = settings.cpuOverload;
+        document.getElementById("alert-frequency").value =
+          settings.alertFrequency;
+      });
 
       // Submit settings
-      settingsForm.addEventListener('submit', (e) => {
-        e.preventDefault()
-        const cpuOverload = document.getElementById('cpu-overload').value
-        const alertFrequency = document.getElementById('alert-frequency').value
+      settingsForm.addEventListener("submit", e => {
+        e.preventDefault();
+        const cpuOverload = document.getElementById("cpu-overload").value;
+        const alertFrequency = document.getElementById("alert-frequency").value;
 
         // Send new settings to main process
-        ipcRenderer.send('settings:set', {
+        ipcRenderer.send("settings:set", {
           cpuOverload,
           alertFrequency,
-        })
+        });
 
-        showAlert('Settings Saved')
-      })
+        showAlert("Settings Saved");
+      });
 
       // Show alert for settings
       function showAlert(msg) {
-        const alert = document.getElementById('alert')
-        alert.classList.remove('hide')
-        alert.classList.add('alert')
-        alert.innerText = msg
+        const alert = document.getElementById("alert");
+        alert.classList.remove("hide");
+        alert.classList.add("alert");
+        alert.innerText = msg;
 
-        setTimeout(() => alert.classList.add('hide'), 3000)
+        setTimeout(() => alert.classList.add("hide"), 3000);
       }
 
       // Toggle nav
-      ipcRenderer.on('nav:toggle', () => {
-        nav.classList.toggle('hide')
-      })
+      ipcRenderer.on("nav:toggle", () => {
+        nav.classList.toggle("hide");
+      });
     </script>
   </body>
 </html>

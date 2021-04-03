@@ -15,13 +15,13 @@ listItems.forEach((item, index) => {
 });
 
 function hideAllContents() {
-  contents.forEach((content) => {
+  contents.forEach(content => {
     content.classList.remove("show");
   });
 }
 
 function hideAllItems() {
-  listItems.forEach((item) => {
+  listItems.forEach(item => {
     item.classList.remove("active");
   });
 }
